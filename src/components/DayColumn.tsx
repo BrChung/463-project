@@ -1,20 +1,45 @@
-import React from 'react';
-import { roomType } from '../models/room';
-import styles from '../../styles/components/DayColumn.module.scss'
-const DayColumn = ({roomOccupyList, children}) => {
+import React from "react";
+import styles from "../../styles/components/DayColumn.module.scss";
+import Link from "../Link";
+import { isToday } from "date-fns";
+import { roomNumArr } from "../models/room";
 
-  // Assuming roomOccupyList = [{roomNum, guestName},{roomNum, guestName}]
+const DayColumn = ({ roomOccupyList, day, children }) => {
+  // Assuming roomOccupyList = [{roomNum, roomStatus, guestName},{roomNum, roomStatus, guestName}]
+
+  const getRoom = (roomNum: string) => {
+    if (!roomOccupyList || !roomOccupyList.reservations) return null;
+    return roomOccupyList.reservations.find(
+      (elm) => elm.room.roomNum === roomNum
+    );
+  };
+
   return (
     <div>
       <h1>{children}</h1>
-      {roomOccupyList.map((value) => (
-        <div className={styles.roomContainer}>
-          <span>{value.roomNum}</span>
-          <span>{value.guestName}</span>
-        </div>
-      ))}
+      {roomNumArr.map((room) => {
+        const currentRoom = getRoom(room.toString());
+        return (
+          <div className={styles.roomContainer} key={room}>
+            <Link
+              href={
+                currentRoom
+                  ? `/stayinfo/${currentRoom.reservationId}`
+                  : isToday(new Date(day))
+                  ? `/stayinfo/newCheckIn`
+                  : `/reservations?newRes=true`
+              }
+            >
+              {room}
+            </Link>
+            {currentRoom && (
+              <span>{`${currentRoom.guest.firstName} ${currentRoom.guest.lastName}`}</span>
+            )}
+          </div>
+        );
+      })}
     </div>
-  )
-}
+  );
+};
 
 export default DayColumn;
